@@ -5,3 +5,4 @@ st.header('Just Giddy Goose things')
 st.markdown("""
     This is the app.<br>It does things<br>Choose a page on the left and see what happens
 """, unsafe_allow_html=True)
+st.image('resources/goose.jpg')
