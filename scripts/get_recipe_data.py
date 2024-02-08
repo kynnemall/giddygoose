@@ -17,6 +17,7 @@ URLS = {
     'Cake': 'https://www.bbcgoodfood.com/recipes/collection/classic-cake-recipes',
     'Biscuit': 'https://www.bbcgoodfood.com/recipes/collection/biscuit-recipes',
     'Pastry': 'https://www.bbcgoodfood.com/search?q=shortcrust+pastry&tab=recipe&mealType=dessert',
+    'Bread': 'https://www.bbcgoodfood.com/recipes/collection/bread-recipes'
 }
 
 
@@ -72,4 +73,6 @@ if __name__ == '__main__':
 
     df = pd.concat(dfs)
     print('\nSaving recipe data to CSV file')
-    df.to_csv('../data/recipe_data.csv', index=False)
+    savepath = '../data/recipe_data.csv'
+    mode = 'a' if os.path.exists(savepath) else 'w'
+    df.to_csv(savepath, index=False, mode=mode)
