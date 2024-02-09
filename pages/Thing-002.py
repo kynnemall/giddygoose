@@ -8,10 +8,9 @@ Created on Wed Feb  7 20:27:57 2024
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import streamlit as st
+import plotly.express as px
 import matplotlib.pyplot as plt
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.inspection import DecisionBoundaryDisplay
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
@@ -30,7 +29,7 @@ def process_fat_str(s):
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv('../data/recipe_data.csv')
+    df = pd.read_csv('data/recipe_data.csv')
     return df
 
 
@@ -52,65 +51,99 @@ def prepare_data(df):
 
     return data
 
-# %%
 
-
-def dtree_decision_boundary(cols, dtree=False):
-    plot_colors = "wrby"
-    classes = data['class'].unique()
+@st.cache_resource
+def train_model(data, cols):
     X = data[cols].values
     y = data['class'].values
-    global clf
-    if dtree:
-        clf = DecisionTreeClassifier(
-            random_state=42, class_weight='balanced', min_impurity_decrease=5e-2
-        )
-    else:
-        clf = LinearDiscriminantAnalysis(n_components=2)
-
+    clf = LinearDiscriminantAnalysis(n_components=2)
     clf.fit(X, y)
+    return clf
+
+
+def plot_decision_boundary(data, cols, clf, classes):
+    plot_colors = "wrby"
+    X = data[cols].values
+    y = data['class'].values
     score = clf.score(X, y)
 
-    if len(cols) == 2:
-        fig, ax = plt.subplots()
-        DecisionBoundaryDisplay.from_estimator(
-            clf, X, cmap=plt.cm.RdYlBu, response_method="predict",
-            xlabel=cols[0], ylabel=cols[1], ax=ax
+    # plot the decision boundary
+    xlabel = cols[0] if 'ratio' in cols[0] else cols[0] + ' (grams)'
+    ylabel = cols[1] if 'ratio' in cols[1] else cols[1] + ' (grams)'
+    fig, ax = plt.subplots()
+    DecisionBoundaryDisplay.from_estimator(
+        clf, X, cmap=plt.cm.RdYlBu, response_method="predict",
+        xlabel=xlabel, ylabel=ylabel, ax=ax
+    )
+
+    # plot individual data points
+    for i, color in zip(classes, plot_colors):
+        idx = np.where(y == i)
+        plt.scatter(
+            X[idx, 0], X[idx, 1], c=color, label=i, cmap=plt.cm.RdYlBu,
+            edgecolor="black", s=30,
         )
-        for i, color in zip(classes, plot_colors):
-            idx = np.where(y == i)
-            plt.scatter(
-                X[idx, 0],
-                X[idx, 1],
-                c=color,
-                label=i,
-                cmap=plt.cm.RdYlBu,
-                edgecolor="black",
-                s=30,
-            )
-        plt.title(f'Classifier score: {score:.1%}')
-        plt.legend()
-        plt.tight_layout()
 
-    if isinstance(clf, LinearDiscriminantAnalysis):
-        comps = clf.transform(X)
-        comps = pd.DataFrame(comps, columns=['LDA 1', 'LDA 2'])
-        comps['Class'] = y
-        plt.figure()
-        sns.scatterplot(x='LDA 1', y='LDA 2', data=comps, hue='Class')
-        sns.despine()
-        plt.tight_layout()
-
-    return score
+    plt.title(f'Prediction accuracy: {score:.1%}')
+    plt.legend()
+    plt.tight_layout()
+    fig = plt.gcf()
+    return fig, ax
 
 
-# this feature combo gives the best accuracy
-dtree_decision_boundary(['fat:flour ratio', 'flour', 'sugar'], False)
+def plotly_predictions(y_pred, classes):
+    fig = px.bar(x=classes, y=y_pred * 100)
+    fig.update_layout(
+        yaxis_title="Probability (%)", xaxis_title='',
+        yaxis={'tickfont': {'size': 16}, 'titlefont': {'size': 20}},
+        xaxis={'tickfont': {'size': 16}, 'titlefont': {'size': 20}}
+    )
+    fig.update_traces(hovertemplate="<br>".join(["%{x}", "%{y:.1}%"]))
+    return fig
 
+
+# these feature combos give the best accuracy
+# dtree_decision_boundary(['fat:flour ratio', 'flour', 'sugar'], False)
 # ['fat:flour ratio', 'flour', 'sugar'] for LDA with 3 features: 88%
 # ['fat:flour ratio', 'sugar'] for LDA with 2 features: 84.5%
 # ['flour:sugar ratio', 'flour', 'fat'] for DT with 3 features: 90%
 
-# %%
+features = ['fat:flour ratio', 'sugar']
 df = load_data()
-data = prepare_data()
+data = prepare_data(df)
+classes = data['class'].unique()
+model = train_model(data, cols=features)
+fig, ax = plot_decision_boundary(data, features, model, classes)
+
+# layout
+st.markdown("""
+    Discussing baked goods recently, I began wondering at what point you
+    a biscuit is more like a cake or when pastry is more like bread. It's
+    somehwat known that an equal ratio of flour, sugar, and butter makes a
+    cake, so maybe you can consider ratios for other things.<br><br>This is
+    probably already a baking thing but It's more fun to find out with code
+    than just Googling the answer.<br><br>Using Machine Learning and nothing
+    but info on quantities of flour, butter, and sugar in a recipe, there now
+    exists a model that can classify a baked good as either bread, cake,
+    biscuit, or pastry.
+""", unsafe_allow_html=True)
+
+st.pyplot(fig)
+st.markdown("""
+    Use the form below to test your own recipes and see where they fall.
+""", unsafe_allow_html=True)
+
+with st.form("Classify your recipe"):
+    fat = st.number_input("Amount of butter/fat in grams", min_value=1,
+                          max_value=1000, value=1, step=1)
+    flour = st.number_input("Amount of flour in grams", min_value=1,
+                            max_value=1000, value=1, step=1)
+    sugar = st.number_input("Amount of sugar in grams", min_value=1,
+                            max_value=1000, value=1, step=1)
+    submitted = st.form_submit_button("Classify that recipe!")
+    if submitted:
+        fat_to_flour = fat / flour
+        X_test = np.array([[fat_to_flour, sugar]])
+        y_test = model.predict_proba(X_test).ravel()
+        plotly_fig = plotly_predictions(y_test, model.classes_)
+        st.plotly_chart(plotly_fig, use_container_width=True)
