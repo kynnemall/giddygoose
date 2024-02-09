@@ -55,7 +55,17 @@ def simulate(n_women, n_sim, days, cycle_lengths):
 
 # layout
 st.markdown("""
-    Two friends were wondering what the probability that two women would be on their at the same time. They reasoned it would be 25% assuming the average cycle is 28 days and a period lasts 7 days.<br><br>Being a scientist and mathematically-inclined, I thought it can't be as simple as that;<br>It would actually be about 5.4%.<br><br>The simple thing is to simulate a number of different pairs of women, each with a potential period duration of 5-7 days and cycle length varying from 28-35 days. You can vary these parameters yourself and see how the probabilities change.<br><br>NOTE: you can use the Github issues section of this repo to request a change to the limits of these parameters if there's an odd period duration I haven't considered.
+    Two friends were wondering what the probability that two women would be 
+    on their at the same time. They reasoned it would be 25% assuming the 
+    average cycle is 28 days and a period lasts 7 days.<br><br>Being a 
+    scientist and mathematically-inclined, I thought it can't be as simple 
+    as that;<br>It would actually be about 5.4%.<br><br>The simple thing 
+    is to simulate a number of different pairs of women, each with a 
+    potential period duration of 5-7 days and cycle length varying from 
+    28-35 days. You can vary these parameters yourself and see how the 
+    probabilities change.<br><br>NOTE: you can use the Github issues 
+    section of this repo to request a change to the limits of these parameters 
+    if there's an odd period duration I haven't considered.
 """, unsafe_allow_html=True)
 
 with st.form("Probability Calculator"):
