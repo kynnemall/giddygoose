@@ -92,13 +92,13 @@ def plot_decision_boundary(data, cols, clf, classes):
 
 
 def plotly_predictions(y_pred, classes):
-    fig = px.bar(x=classes, y=y_pred * 100)
+    fig = px.bar(x=classes, y=y_pred)
     fig.update_layout(
-        yaxis_title="Probability (%)", xaxis_title='',
+        yaxis_title="Probability", xaxis_title='',
         yaxis={'tickfont': {'size': 16}, 'titlefont': {'size': 20}},
         xaxis={'tickfont': {'size': 16}, 'titlefont': {'size': 20}}
     )
-    fig.update_traces(hovertemplate="<br>".join(["%{x}", "%{y:.1}%"]))
+    fig.update_traces(hovertemplate="<br>".join(["%{x}", "%{y:.2%}"]))
     return fig
 
 
