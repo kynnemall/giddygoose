@@ -8,27 +8,37 @@ Created on Mon Feb 12 18:33:35 2024
 
 import os
 import sys
-import json
 import nltk
+import concurrent
+import pandas as pd
 from time import time
 from tqdm import tqdm
 from datetime import timedelta
-from multiprocessing import Pool
 from PyMultiDictionary import MultiDictionary
 
 LANGUAGES = ('French', 'Spanish', 'Portuguese', 'German',
              'Russian', 'Italian', 'Malaysian', 'Polish')
-LANGUAGE_CODES = ('fr', 'es', 'pt', 'de', 'ru', 'it', 'ms', 'pl')
+LANGUAGE_CODES = ['fr', 'es', 'pt', 'de', 'ru', 'it', 'ms', 'pl']
+
+# TODO: change saving to use Pandas instead of JSON
+# column for each language, row for each word
 
 
 def translate(word):
     dictionary = MultiDictionary()
     translated = dictionary.translate('en', word)
-    shortlist = [t for t in translated if t[0] in LANGUAGE_CODES]
-    data = {word: shortlist}
-
-    with open('results.jsonl', 'a', encoding='UTF-8') as f:
-        f.write(json.dumps(data) + '\n')
+    shortlist = []
+    for code in LANGUAGE_CODES:
+        for t in translated:
+            if t[0] == code:
+                shortlist.append(t)
+    if shortlist:
+        data = pd.DataFrame(
+            [[t[1] for t in shortlist]], columns=LANGUAGE_CODES, index=[0]
+        )
+        data['en'] = word
+        data.to_csv('results.csv', encoding='UTF-8',
+                    index=False, mode='a', header=False)
 
 
 def translate_words(n_words, n_processes):
@@ -38,26 +48,23 @@ def translate_words(n_words, n_processes):
     english = list(set([word.lower() for word in english]))
 
     # remove words that are already stored
-    if os.path.exists('results.jsonl'):
-        with open('results.jsonl', 'r') as f:
-            json_list = list(f)
-        data = [json.loads(json_str) for json_str in json_list]
-        used_words = [list(d.keys())[0] for d in data]
+    if os.path.exists('results.csv'):
+        used_words = pd.read_csv(
+            'results.csv', encoding='UTF-8', usecols=[0]
+        )['en']
         english = [e for e in english if e not in used_words]
 
         print(f'{len(used_words)} words already translated')
     else:
-        with open('results.jsonl', 'a') as f:
-            print('Making empty results file')
+        df = pd.DataFrame(list(), columns=LANGUAGE_CODES + ['en'])
+        df.to_csv('results.csv', encoding='UTF-8', index=False)
 
     print(f'{len(english)} words left to translate')
 
     start = time()
     n_items = len(english[:n_words])
-    with Pool(processes=n_processes) as p:
-        with tqdm(total=n_items) as pbar:
-            for _ in p.imap_unordered(translate, english[:n_words]):
-                pbar.update()
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        list(tqdm(executor.map(translate, english[:n_words]), total=n_items))
 
     end = time()
     strftime = timedelta(seconds=end - start)
@@ -65,10 +72,11 @@ def translate_words(n_words, n_processes):
 
 
 if __name__ == '__main__':
-    n_proc = min(os.cpu_count(), 8)
+    n_proc = min(os.cpu_count(), 4)
     if len(sys.argv) > 1:
         n_words = int(sys.argv[1])
     else:
         n_words = 1000
         print('No user-defined amount of words; Defaulting to 1000 words')
-    data = translate_words(n_words, n_proc)
+    print('\n------ IF AN ERROR OCCURS, WAIT A FEW HOURS AND TRY AGAIN ------\n')
+    translate_words(n_words, n_proc)
