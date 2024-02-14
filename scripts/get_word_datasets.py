@@ -9,24 +9,20 @@ Created on Mon Feb 12 18:33:35 2024
 import os
 import sys
 import nltk
-import concurrent
+import time
 import pandas as pd
-from time import time
 from tqdm import tqdm
-from datetime import timedelta
 from PyMultiDictionary import MultiDictionary
 
 LANGUAGES = ('French', 'Spanish', 'Portuguese', 'German',
              'Russian', 'Italian', 'Malaysian', 'Polish')
 LANGUAGE_CODES = ['fr', 'es', 'pt', 'de', 'ru', 'it', 'ms', 'pl']
 
-# TODO: change saving to use Pandas instead of JSON
-# column for each language, row for each word
-
 
 def translate(word):
     dictionary = MultiDictionary()
     translated = dictionary.translate('en', word)
+    time.sleep(0.5)
     shortlist = []
     for code in LANGUAGE_CODES:
         for t in translated:
@@ -41,7 +37,7 @@ def translate(word):
                     index=False, mode='a', header=False)
 
 
-def translate_words(n_words, n_processes):
+def translate_words(n_words):
     # extract words from corpus
     nltk.download('words')
     english = nltk.corpus.words.words()
@@ -50,7 +46,7 @@ def translate_words(n_words, n_processes):
     # remove words that are already stored
     if os.path.exists('results.csv'):
         used_words = pd.read_csv(
-            'results.csv', encoding='UTF-8', usecols=[0]
+            'results.csv', encoding='UTF-8', usecols=['en']
         )['en']
         english = [e for e in english if e not in used_words]
 
@@ -61,22 +57,15 @@ def translate_words(n_words, n_processes):
 
     print(f'{len(english)} words left to translate')
 
-    start = time()
-    n_items = len(english[:n_words])
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        list(tqdm(executor.map(translate, english[:n_words]), total=n_items))
-
-    end = time()
-    strftime = timedelta(seconds=end - start)
-    print(f'\nTime taken to translate {n_items} words:\t{strftime}')
+    for word in tqdm(english[:n_words]):
+        translate(word)
 
 
 if __name__ == '__main__':
-    n_proc = min(os.cpu_count(), 4)
     if len(sys.argv) > 1:
         n_words = int(sys.argv[1])
     else:
         n_words = 1000
         print('No user-defined amount of words; Defaulting to 1000 words')
     print('\n------ IF AN ERROR OCCURS, WAIT A FEW HOURS AND TRY AGAIN ------\n')
-    translate_words(n_words, n_proc)
+    translate_words(n_words)
