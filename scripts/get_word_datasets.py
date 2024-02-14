@@ -22,19 +22,20 @@ LANGUAGE_CODES = ['fr', 'es', 'pt', 'de', 'ru', 'it', 'ms', 'pl']
 def translate(word):
     dictionary = MultiDictionary()
     translated = dictionary.translate('en', word)
-    time.sleep(0.5)
+    time.sleep(0.05)
     shortlist = []
     for code in LANGUAGE_CODES:
         for t in translated:
             if t[0] == code:
                 shortlist.append(t)
-    if shortlist:
-        data = pd.DataFrame(
-            [[t[1] for t in shortlist]], columns=LANGUAGE_CODES, index=[0]
-        )
-        data['en'] = word
-        data.to_csv('results.csv', encoding='UTF-8',
-                    index=False, mode='a', header=False)
+    if not shortlist:
+        shortlist = [(0, '')] * 8
+    data = pd.DataFrame(
+        [[t[1] for t in shortlist]], columns=LANGUAGE_CODES, index=[0]
+    )
+    data['en'] = word
+    data.to_csv('results.csv', encoding='UTF-8',
+                index=False, mode='a', header=False)
 
 
 def translate_words(n_words):
@@ -47,8 +48,8 @@ def translate_words(n_words):
     if os.path.exists('results.csv'):
         used_words = pd.read_csv(
             'results.csv', encoding='UTF-8', usecols=['en']
-        )['en']
-        english = [e for e in english if e not in used_words]
+        )['en'].tolist()
+        english = list(set(english) - set(used_words))
 
         print(f'{len(used_words)} words already translated')
     else:
