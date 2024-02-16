@@ -19,10 +19,10 @@ LANGUAGES = ('French', 'Spanish', 'Portuguese', 'German',
 LANGUAGE_CODES = ['fr', 'es', 'pt', 'de', 'ru', 'it', 'ms', 'pl']
 
 
-def translate(word):
+def translate(word, delay):
     dictionary = MultiDictionary()
     translated = dictionary.translate('en', word)
-    time.sleep(0.05)
+    time.sleep(delay)
     shortlist = []
     for code in LANGUAGE_CODES:
         for t in translated:
@@ -38,7 +38,7 @@ def translate(word):
                 index=False, mode='a', header=False)
 
 
-def translate_words(n_words):
+def translate_words(n_words, delay):
     # extract words from corpus
     nltk.download('words')
     english = nltk.corpus.words.words()
@@ -59,7 +59,7 @@ def translate_words(n_words):
     print(f'{len(english)} words left to translate')
 
     for word in tqdm(english[:n_words]):
-        translate(word)
+        translate(word, delay)
 
 
 if __name__ == '__main__':
@@ -68,5 +68,12 @@ if __name__ == '__main__':
     else:
         n_words = 1000
         print('No user-defined amount of words; Defaulting to 1000 words')
+
+    if len(sys.argv) > 2:
+        delay = float(sys.argv[2])
+        assert 1 > delay > 0, 'Delay should be a fraction of a second'
+    else:
+        delay = 0.1
+        print('No user-defined delay time; Defaulting to 100ms')
     print('\n------ IF AN ERROR OCCURS, WAIT A FEW HOURS AND TRY AGAIN ------\n')
-    translate_words(n_words)
+    translate_words(n_words, delay)
