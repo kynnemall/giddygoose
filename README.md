@@ -10,4 +10,6 @@ Click [here](https://giddygoose.streamlit.app/) to have a gander (or a goose) at
 
 ### Questions addressed so far
 1. A simulator to estimate the probability that N random women will be on their period at the same time
-2. <em>In Progress:<em> An ML app to classify baked goods as either biscuit, cake, or pastry
+2. An ML app to classify baked goods as either biscuit, cake, bread, or pastry
+3. A simple next letter generator using Markov Models
+4. <em>In Progress:<em> TBD
