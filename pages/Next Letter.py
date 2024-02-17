@@ -136,6 +136,18 @@ def english_probabilities():
     return data
 
 
+def word_probability(word):
+    mat = st.session_state['English']
+    letters = list(word) + ['[EOW]']
+    probs = []
+    for n in range(len(letters) - 1):
+        prob = mat.loc[letters[n], letters[n+1]]
+        probs.append(prob)
+    prob = np.product(probs)
+    chance = round(1 / prob)
+    return chance
+
+
 languages = ['French', 'Spanish', 'Portuguese', 'German', 'Russian',
              'Italian', 'Malaysian', 'Polish', 'English']
 
@@ -149,7 +161,21 @@ main, tab1, tab2, tab3 = st.tabs(
 )
 
 with main:
-    st.text('About page')
+    st.markdown("""
+Since its release ChatGPT has been lauded as a super-powered AI assistant.
+Having never really used natural language processing (NLP) before, I decided to
+read up on it and learn about basic approaches to text generation.
+
+This little project was a investigation into a simple model which uses the probability
+of letters following the current letter to predict the next letter. It's a very simple 
+approach and you'll soon understand why if you check out the **Word Generator** tab.
+
+Check out the **Letter Matrix** tab to see the probabilities of the next letter given
+a current letter for a multitude of languages. If you want more statistics, you can 
+see the probability of randomly generating words of certain length using this approach,
+and also get the chance of randomly generating a word of your choice.
+""", unsafe_allow_html=True)
+
 
 with tab1:
     selected = st.selectbox(
@@ -198,4 +224,10 @@ with tab3:
     )
     fig.update_yaxes(type='log')
     st.plotly_chart(fig)
-    st.dataframe(probs)
+    with st.form('Word Probability Calculator'):
+        word = st.text_input('Choose a word to calculate the chance of randomly generating it with this model')
+        submitted = st.form_submit_button("Calculate Probability")
+        if submitted:
+            chance = word_probability(word)
+            st.markdown(f'The probability of this word is 1 in {chance}!')
+        
