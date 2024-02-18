@@ -9,7 +9,7 @@ In this repo, you may find some incredibly useful things. Just maybe. I can't gu
 Click [here](https://giddygoose.streamlit.app/) to have a gander (or a goose) at the app
 
 ### Questions addressed so far
-1. A simulator to estimate the probability that N random women will be on their period at the same time
-2. An ML app to classify baked goods as either biscuit, cake, bread, or pastry
-3. A simple next letter generator using Markov Models
+1. A simulator to estimate the probability that N random women will be on their period at the same time - [honk](https://giddygoose.streamlit.app/Thing-001)
+2. An ML app to classify baked goods as either biscuit, cake, bread, or pastry - [honk](https://giddygoose.streamlit.app/Thing-002)
+3. A simple next letter generator using Markov Models - [honk](https://giddygoose.streamlit.app/Next_Letter)
 4. <em>In Progress:<em> TBD
