@@ -2,4 +2,5 @@ matplotlib
 nltk
 numpy
 plotly
+scikit-learn
 supabase
