@@ -22,6 +22,20 @@ URLS = {
 
 
 def get_soup(url):
+    """
+    Short function to get BeautifulSoup object from a url
+
+    Parameters
+    ----------
+    url : string
+        web address
+
+    Returns
+    -------
+    soup : BeautifulSoup object
+        soupified html response
+
+    """
     response = requests.get(url)
     assert '200' in str(response), f'URL response is not 200: {response}'
     soup = BeautifulSoup(response.content, 'lxml')
@@ -29,6 +43,20 @@ def get_soup(url):
 
 
 def extract_recipe_data(url):
+    """
+    Get recipe data from a BBC Good Food link
+
+    Parameters
+    ----------
+    url : string
+        web address to the recipe on BBC Good Food
+
+    Returns
+    -------
+    recipe : pandas dataframe
+        extracted recipe data in tidy data format
+
+    """
     soup = get_soup(url)
     sections = soup.findAll('section')
     for s in sections:
@@ -47,6 +75,24 @@ def extract_recipe_data(url):
 
 
 def get_recipe_data(base_url, group, n_processes):
+    """
+    Multiprocessing approach to generate recipes dataset
+
+    Parameters
+    ----------
+    base_url : string
+        web address to page with multiple BBC Good Food recipes
+    group : string
+        category of baked good
+    n_processes : integer
+        number of processes to use for parallelizing data extraction
+
+    Returns
+    -------
+    df : pandas dataframe
+        recipe data for baked goods
+
+    """
     soup = get_soup(base_url)
     links = [i['href'] for i in soup.findAll('a', class_='link d-block')][:-3]
     urls = ['https://www.bbcgoodfood.com/' + url for url in links]

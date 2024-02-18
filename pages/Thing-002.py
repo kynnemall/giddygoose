@@ -16,6 +16,20 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 
 
 def process_fat_str(s):
+    """
+    Format the fat column of the dataframe for butter and oil
+
+    Parameters
+    ----------
+    s : string
+        amount of butter/fat in the recipe
+
+    Returns
+    -------
+    num : integer
+        grams of butter/oil in the recipe
+
+    """
     # extracts int and converts ml to gram depending on veg or sunflower oil
     if 'g ' in s or s.endswith('g'):
         num = int(s.split('g')[0])
@@ -29,12 +43,35 @@ def process_fat_str(s):
 
 @st.cache_data
 def load_data():
+    """
+    Load the dataset and use Streamlit caching
+
+    Returns
+    -------
+    df : pandas dataframe
+        recipes dataset
+
+    """
     df = pd.read_csv('data/recipe_data.csv')
     return df
 
 
 @st.cache_data
 def prepare_data(df):
+    """
+    Format recipes for machine learning. Use Streamlit caching.
+
+    Parameters
+    ----------
+    df : pandas dataframe
+        raw recipes dataset
+
+    Returns
+    -------
+    data : pandas dataframe
+        formatted recipes dataframe
+
+    """
     data = df.copy()
 
     # format and drop unnecessary columns
@@ -45,6 +82,8 @@ def prepare_data(df):
 
     # add small value to prevent multiplication/division by zero
     data.iloc[:, 1:] = data.iloc[:, 1:] + 1
+
+    # calculate ingredient ratios
     data['fat:sugar ratio'] = data['fat'] / data['sugar']
     data['fat:flour ratio'] = data['fat'] / data['flour']
     data['flour:sugar ratio'] = data['flour'] / data['sugar']
@@ -54,6 +93,22 @@ def prepare_data(df):
 
 @st.cache_resource
 def train_model(data, cols):
+    """
+    Train a Linear Discriminant Analysis (LDA) model
+
+    Parameters
+    ----------
+    data : pandas dataframe
+        formatted recipes dataset
+    cols : list(string)
+        dataset columns to use in the model
+
+    Returns
+    -------
+    clf : scikit-learn LDA model
+        fitted LDA model
+
+    """
     X = data[cols].values
     y = data['class'].values
     clf = LinearDiscriminantAnalysis(n_components=2)
@@ -62,6 +117,26 @@ def train_model(data, cols):
 
 
 def plot_decision_boundary(data, cols, clf, classes):
+    """
+    Plot the decision boundary of the trained LDA classifier
+
+    Parameters
+    ----------
+    data : pandas dataframe
+        formatted recipes dataset
+    cols : list(string)
+        dataset columns to use in the model
+    clf : scikit-learn LDA model
+        fitted LDA model
+    classes : list(string)
+        list of classes that can be predicted
+
+    Returns
+    -------
+    fig : matplotlib figure
+        decision boundary plot showing training datapoints
+
+    """
     plot_colors = "wrby"
     X = data[cols].values
     y = data['class'].values
@@ -88,10 +163,26 @@ def plot_decision_boundary(data, cols, clf, classes):
     plt.legend()
     plt.tight_layout()
     fig = plt.gcf()
-    return fig, ax
+    return fig
 
 
 def plotly_predictions(y_pred, classes):
+    """
+    Make barplot of prediction class probabilities
+
+    Parameters
+    ----------
+    y_pred : numpy array
+        model prediction probability for each class
+    classes : list(string)
+        list of classes that can be predicted
+
+    Returns
+    -------
+    fig : plotly figure
+        barplot of 
+
+    """
     fig = px.bar(x=classes, y=y_pred)
     fig.update_layout(
         yaxis_title="Probability", xaxis_title='',
@@ -113,7 +204,7 @@ df = load_data()
 data = prepare_data(df)
 classes = data['class'].unique()
 model = train_model(data, cols=features)
-fig, ax = plot_decision_boundary(data, features, model, classes)
+fig = plot_decision_boundary(data, features, model, classes)
 
 # layout
 st.markdown("""

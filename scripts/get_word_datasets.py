@@ -20,6 +20,22 @@ LANGUAGE_CODES = ['fr', 'es', 'pt', 'de', 'ru', 'it', 'ms', 'pl']
 
 
 def translate(word, delay):
+    """
+    Translate a word from English to multiple languages with a delay after 
+    translating to avoid HTTP Errors
+
+    Parameters
+    ----------
+    word : string
+        english word to be translated
+    delay : float
+        fraction of a second to wait after translating the word
+
+    Returns
+    -------
+    None.
+
+    """
     dictionary = MultiDictionary()
     translated = dictionary.translate('en', word)
     time.sleep(delay)
@@ -39,6 +55,21 @@ def translate(word, delay):
 
 
 def translate_words(n_words, delay):
+    """
+
+
+    Parameters
+    ----------
+    n_words : integer
+        number of words to translate
+    delay : float
+        fraction of a second to wait after translating each word
+
+    Returns
+    -------
+    None.
+
+    """
     # extract words from corpus
     nltk.download('words')
     english = nltk.corpus.words.words()

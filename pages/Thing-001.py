@@ -14,7 +14,7 @@ import plotly.express as px
 def simulate(n_women, n_sim, days, cycle_lengths):
     """
     Calculate `n_sim` times the probability of `n_women` having an event
-    given a range of `days` and `cycle_lengths`
+    given a range of `days` and `cycle_lengths` using the Monte Carlo method
 
     Parameters
     ----------
@@ -55,8 +55,8 @@ def simulate(n_women, n_sim, days, cycle_lengths):
 
 # layout
 st.markdown("""
-    Two friends were wondering what the probability that two women would be 
-    on their at the same time. They reasoned it would be 25% assuming the 
+    Two friends were wondering what is the probability that two random women would be 
+    on their period at the same time. They reasoned it would be 25% assuming the 
     average cycle is 28 days and a period lasts 7 days.<br><br>Being a 
     scientist and mathematically-inclined, I thought it can't be as simple 
     as that;<br>It would actually be about 5.4%.<br><br>The simple thing 
