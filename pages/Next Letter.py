@@ -311,4 +311,4 @@ with tab3:
         submitted = st.form_submit_button("Calculate Probability")
         if submitted:
             chance = word_probability(word)
-            st.markdown(f'The probability of this word is 1 in {chance}!')
+            st.markdown(f'The probability of this word is 1 in {chance:,}!')
